@@ -44,6 +44,8 @@ repo/
       resume/
     schemas/
       book_profile.schema.yaml
+      chapter_map.schema.yaml
+      chapter_map_review.schema.yaml
       epubcheck_summary.schema.yaml
       chapter_pack.schema.yaml
       blocker.schema.yaml
@@ -109,6 +111,7 @@ repo/
 
       qa/
         chapter_status.tsv
+        chapter_status.meta.yaml
         dependency_index.yaml
         reports/
 
@@ -644,8 +647,10 @@ Papildomas kontraktas:
 - `source_segments[]` šiame artefakte pernaudoja bendrą v1 `source_segments[]` item modelį iš chaptering sluoksnio ir negali naudoti atskiro, pack-local formato;
 - `required_claims[]` yra privalomas preflight claim coverage / obligation descriptor masyvas, ne jau egzistuojančių `claim_id` registras;
 - `build-chapter-pack` gali sukurti validų `chapter_pack` dar prieš atsirandant `claims/<slug>.yaml`, nes `required_claims[]` aprašo, kokia claim-level atrama turi būti sukurta ar peržiūrėta vėlesniame etape;
-- kiekvienas `required_claims[]` vienetas turi būti seklus objektas su bent `claim_key`, `claim_type`, `source_scope`, `why_required`;
+- kiekvienas `required_claims[]` vienetas turi būti seklus objektas su bent `claim_key`, `claim_type`, `why_required`;
 - `claim_key` yra stabilus chapter-local descriptor identifikatorius ir vienintelis kanoninis join raktas tarp `chapter_pack`, `claims` ir claim-related blocker'ių tame skyriuje;
+- `claim_type` v1 dar nėra uždaras globalus enum, bet turi būti stabilus machine-facing `snake_case` identifikatorius; baziniai pavyzdžiai: `dose`, `algorithm`, `contraindication`, `guideline`;
+- `source_scope` v1 lieka optional siaurinimo signalas; jei jis pateiktas, gali būti tik `chapter` arba `segment`;
 - `research-chapter` turi kiekvieną `required_claims[]` descriptor vienetą arba materializuoti į `claims/<slug>.yaml` per `claims[].required_claim_ref`, arba palikti formaliai neišspręstą per blocker / review kelią su `blockers[].required_claim_refs[]`;
 - claim coverage closure tame skyriuje vertinama pagal `chapter_pack.required_claims[].claim_key` padengimą per `claims[].required_claim_ref` ir, jei dar neišspręsta, per `blockers[].required_claim_refs[]`; nė vienas `required_claims[]` vienetas negali likti be jokio formalaus downstream ryšio;
 - `required_claims[]` kartu yra ir kanoninis preflight signalas chapter-level `risk_class` derivacijai: jei masyvas nėra tuščias, downstream `build-chapter-pack` privalo materializuoti `qa/chapter_status.tsv.risk_class = high`; jei masyvas yra `[]`, downstream `build-chapter-pack` privalo materializuoti `risk_class = low`;
@@ -677,7 +682,9 @@ Papildomas kontraktas:
 - jei `global_variant_key` nepateiktas, `global_term_locks[]` row turi būti grįžtamas į `shared/terminology/global_concepts.tsv`; jei `global_variant_key` pateiktas, row turi būti grįžtamas į `shared/terminology/global_variants.tsv`, o `preferred_lt` turi sutapti su to source row `allowed_lt_variant`;
 - `local_term_locks[]` vienetas turi būti seklus objektas su bent `local_term_key`, `concept_id`, `source_term_en`, `preferred_lt`, `usage_scope`;
 - jei `local_term_key` prasideda `lc-`, row turi būti grįžtamas į `books/<slug>/terms/local_concepts.tsv`, o `usage_scope` tame snapshot'e turi būti `book_default`; jei `local_term_key` prasideda `lv-`, row turi būti grįžtamas į `books/<slug>/terms/local_variants.tsv`, `preferred_lt` turi sutapti su source row `allowed_lt_variant`, o `source_term_en` turi būti paveldimas per tą patį `concept_id` iš atitinkamo concept row;
-- `expected_figures[]` vienetas turi būti seklus objektas su bent `figure_key`, `source_ref`, `importance`, `learning_relevance`;
+- `expected_figures[]` vienetas turi būti seklus objektas su bent `figure_key`, `source_ref`, `importance`;
+- `expected_figures[].importance` naudoja tą patį kanoninį figūrų svarbos enum kaip figūrų triage sluoksnis: `required_for_understanding`, `strong_learning_value`, `optional`, `decorative`;
+- atskiras required `learning_relevance` laukas Wave 1 `chapter_pack` kontrakte nenaudojamas; learning planning-state turi būti derivuojamas iš `expected_figures[].importance`, o ne iš paralelinio ad hoc signalo;
 - nė vienas iš šių masyvų negali būti modeliuojamas vien raw free-text elementais kaip vieninteliu elemento tipu;
 - `learning_block_profile` lieka privalomas viršutinis mokymosi bloko profilis;
 - `learning_block_profile` v1 yra privalomas string enum, ne free-text prose laukas; leistinos reikšmės:
@@ -716,6 +723,15 @@ Papildomos taisyklės šiam rinkiniui:
 - visi šio rinkinio ID kartu turi sudaryti pilną v1 planning-state partition tame skyriuje: tas pats ID negali kartotis daugiau nei viename masyve;
 - šeši branduolio ID (`chapter_essence`, `key_terms`, `core_logic`, `explanatory_examples`, `must_remember`, `self_check_questions`) visada turi būti `required_sections[]` masyve ta pačia kanonine tvarka kaip `product_spec.md`;
 - likę šeši sąlyginiai ID kiekviename `chapter_pack` turi būti deterministiškai paskirstyti tarp `required_sections[]`, `optional_sections_enabled[]`, `optional_sections_disabled[]` ir `not_allowed_sections[]` pagal produkto taisykles ir skyriaus kontekstą.
+
+Wave 1 deterministinis sąlyginių `learning_section_id` paskirstymas:
+
+- `algorithmic_flow` -> `required`, jei `chapter_type = algorithmic` arba `risk_flags[]` turi `algorithmic_sequence`; `optional_enabled`, jei `chapter_type = mixed`; kitu atveju `not_allowed`;
+- `medications_and_doses` -> `required`, jei `chapter_type = pharmacology` arba `risk_flags[]` turi `medication_or_dose`; `optional_enabled`, jei `chapter_type = mixed`; kitu atveju `not_allowed`;
+- `red_flags_common_errors` -> `required`, jei `required_claims[]` nėra tuščias; `optional_enabled`, jei `required_claims[] = []`, bet `risk_flags[]` nėra tuščias; kitu atveju `optional_disabled`;
+- `clinical_mini_scenarios` -> `optional_enabled`, jei `chapter_type` yra `algorithmic`, `pharmacology` arba `mixed`; jei `chapter_type = expository`, naudoti `optional_disabled`;
+- `lt_es_context` -> `optional_enabled`, jei `required_research_tracks[]` nėra tuščias; jei `required_research_tracks[] = []`, naudoti `optional_disabled`;
+- `figure_explanations` -> `required`, jei bent vienas `expected_figures[].importance = required_for_understanding`; `optional_enabled`, jei tokio nėra, bet bent vienas `expected_figures[].importance` yra `strong_learning_value` arba `optional`; kitu atveju `optional_disabled`.
 
 ### `research/<slug>.md`
 Skyriaus lygio tyrimo ir lokalizacijos sprendimų žurnalas.
@@ -1034,6 +1050,12 @@ Visi struktūriniai YAML artefaktai turi turėti:
 
 `md` ir `tsv` artefaktams naudojami sidecar `.meta.yaml` failai.
 
+Wave 1 taisyklė:
+
+- šio skyriaus YAML formalios schemos turi 1:1 atitikmenį on-disk schema failuose `shared/schemas/`;
+- todėl `book.yaml`, `chapter_map.yaml`, `source/index/toc_review.yaml`, `source/index/epubcheck_summary.yaml`, `chapter_packs/<slug>.yaml` ir `books/<book_slug>/decisions/<decision_id>.yaml` Wave 1 atitinkamai naudoja `book_profile.schema.yaml`, `chapter_map.schema.yaml`, `chapter_map_review.schema.yaml`, `epubcheck_summary.schema.yaml`, `chapter_pack.schema.yaml` ir `decision_artifact.schema.yaml`;
+- `qa/chapter_status.tsv` Wave 1 negauna atskiro `shared/schemas/*.yaml` failo; jo formalus kontraktas yra fiksuotas header + `books/<slug>/qa/chapter_status.meta.yaml` sidecar.
+
 ### Kodėl šitas žingsnis svarbus dabar
 Be kanoninių artefaktų kontrakto dar neįmanoma tvarkingai projektuoti:
 
@@ -1127,6 +1149,8 @@ Tai taikoma bent:
 - `qa/chapter_status.tsv`
 
 `source/index/figures.tsv` sidecar yra `books/<slug>/source/index/figures.meta.yaml` su `schema_type: figure_candidate_inventory`, `schema_version: "1.0"`, visais 10 `required_columns[]` pagal šio artefakto semantinį kontraktą aukščiau ir `optional_columns[] = []`.
+
+`qa/chapter_status.tsv` sidecar yra `books/<slug>/qa/chapter_status.meta.yaml` su `schema_type: chapter_execution_registry`, `schema_version: "1.0"`, `required_columns[]` kartojančiu visus šio registro privalomus stulpelius ta pačia tvarka ir `optional_columns[] = []`.
 
 ### Markdown artefaktų formalios taisyklės
 `md` failams galioja ši tvarka:
@@ -1311,6 +1335,9 @@ Optional:
 
 Papildomos taisyklės:
 
+- `source_strategy` gali būti tik `nav+spine`, `spine-first` arba `mixed`;
+- `segmentation_confidence` gali būti tik `high`, `medium` arba `low`;
+- jei `review_flags[]` pateikiamas, jo vienetai turi būti stabilūs machine-facing `snake_case` signalai, ne laisvas prose tekstas;
 - `chapter_map.yaml` yra tik approved segmentation artefaktas;
 - top-level `status` laukas šiame artefakte draudžiamas; proposal būsena gyvena tik `source/index/toc_review.yaml.proposal_status`, o knygos orchestration būsena tik `book.yaml.status`;
 - jei skyrių žemėlapis dar laukia review, proposal turi gyventi `source/index/toc_review.yaml`, ne šiame faile.
@@ -1344,8 +1371,11 @@ Optional:
 
 Papildomos taisyklės:
 
+- `source_strategy` gali būti tik `nav+spine`, `spine-first` arba `mixed`;
+- `segmentation_confidence` gali būti tik `high`, `medium` arba `low`;
 - leistinos `proposal_status` reikšmės: `pending_review`, `resolved`;
 - `review_flags` yra required masyvas; jei signalų nėra, naudojamas `[]`;
+- `review_flags[]` vienetai turi būti stabilūs machine-facing `snake_case` signalai, ne laisvas prose tekstas;
 - `proposed_chapters[]` sąmoningai naudoja tą pačią segmentacijos struktūrą kaip approved `chapter_map`, kad `review-chapter-map` galėtų materializuoti `chapter_map.yaml` be laisvo permap'inimo;
 - `chapter_map.yaml` ir `source/index/toc_review.yaml` negali abu būti traktuojami kaip approved segmentacijos šaltinis; konfliktų atveju approved `chapter_map.yaml` visada laimi;
 - v1 nėra "proposed `chapter_map.yaml`" režimo.
@@ -1443,6 +1473,9 @@ Papildomos taisyklės:
 - `required_claims[]` išlaiko preflight obligation descriptor semantiką ir nereiškia, kad `claims/<slug>.yaml` jau egzistuoja ar kad masyve saugomi tik finalūs `claim_id`;
 - kiekvienas `required_claims[].claim_key` yra stabilus chapter-local join raktas, kurį privalo naudoti tiek `claims[].required_claim_ref`, tiek claim-related `blockers[].required_claim_refs[]`;
 - `required_claims[]` kartu yra kanoninis upstream derivation signalas `qa/chapter_status.tsv.risk_class`: ne tuščias masyvas reiškia, kad downstream `build-chapter-pack` turi materializuoti `risk_class = high`, o `[]` reiškia, kad jis turi materializuoti `risk_class = low`;
+- kiekvienam `required_claims[]` row required: `claim_key`, `claim_type`, `why_required`; `source_scope` lieka optional;
+- `required_claims[].claim_type` v1 dar nėra uždaras globalus enum, bet turi būti stabilus machine-facing `snake_case` identifikatorius;
+- jei `required_claims[].source_scope` pateiktas, jis gali būti tik `chapter` arba `segment`;
 - `chapter_type` naudoja tik šias string enum reikšmes: `expository`, `algorithmic`, `pharmacology`, `mixed`;
 - `draft_mode` naudoja tik vieną leistiną v1 string enum reikšmę: `preflight_scaffold`;
 - `draft_mode = preflight_scaffold` žymi vykdomą preflight pack tipą ir nepakeičia `chapter_state`, `risk_class`, gate ar review ašių;
@@ -1454,6 +1487,8 @@ Papildomos taisyklės:
 - `local_term_locks[]` kiekvienam row required: `local_term_key`, `concept_id`, `source_term_en`, `preferred_lt`, `usage_scope`;
 - jei `local_term_key` prefiksas `lc-`, source row turi būti `books/<slug>/terms/local_concepts.tsv`, o `usage_scope` turi būti `book_default`; jei `local_term_key` prefiksas `lv-`, source row turi būti `books/<slug>/terms/local_variants.tsv`, `preferred_lt` turi sutapti su source row `allowed_lt_variant`, o `source_term_en` turi būti resolve'inamas per tą patį `concept_id`;
 - kiekvienas `local_term_locks[]` row turi būti grįžtamas į vieną konkretų local TSV row, o local lock'ai tame pačiame `concept_id` visada turi aukštesnį precedence už globalias taisykles;
+- kiekvienam `expected_figures[]` row required: `figure_key`, `source_ref`, `importance`;
+- `expected_figures[].importance` naudoja tik `required_for_understanding`, `strong_learning_value`, `optional`, `decorative`;
 - `learning_block_profile` lieka required viršutinis profilis ir naudoja tik šias string enum reikšmes: `expository`, `algorithmic`, `pharmacology`, `mixed`;
 - `blocking_conditions[]` yra required masyvas; kiekvienam row required: `condition_type`, `summary`, `blocks_before`; `requires_user_decision` lieka optional;
 - `blocking_conditions[].condition_type` yra stabilus machine-facing snake_case identifikatorius, bet v1 dar nėra uždaras globalus enum;
@@ -1464,6 +1499,7 @@ Papildomos taisyklės:
 - visi kanoninio v1 rinkinio `learning_section_id` turi būti suklasifikuoti tiksliai viename iš keturių masyvų tame pačiame `chapter_pack`;
 - šeši branduolio ID visada turi likti `required_sections` masyve kanonine tvarka;
 - tas pats `learning_section_id` negali pasikartoti keliuose masyvuose ar būti keičiamas į žmogui matomą LT heading'ą kaip saugojimo formatą.
+- sąlyginių šešių `learning_section_id` paskirstymas Wave 1 writer'iui yra deterministinis ir turi sekti semantiniame kontrakte aukščiau aprašytą taisyklių lentelę; alternatyvios heuristikos čia neleidžiamos.
 
 #### `claims/<slug>.yaml` (`schema_type: claims_register`)
 Top-level required:
@@ -2229,6 +2265,7 @@ Komanda turi:
 - užpildyti `book.yaml`;
 - jei `chapter_map` review dar reikalingas, sugeneruoti `source/index/toc_review.yaml` kaip proposal artefaktą;
 - jei `chapter_map` review nereikalingas, materializuoti approved `chapter_map.yaml` tiesiogiai;
+- jei ši komanda materializuoja approved `chapter_map.yaml`, tame pačiame sėkmės kelyje ji turi materializuoti ir `source/chapters-en/*` iš to patvirtinto map;
 - sugeneruoti `source/index/*`;
 - `review_flag` lygio `EPUBCheck` signalus perkelti į ingest / `chapter_map` review signalus, kai jie mažina segmentacijos patikimumą;
 - sustoti būsenose `prepared_waiting_chapter_map_review` arba `prepared_waiting_translation_permission`.
@@ -2253,6 +2290,7 @@ Papildomas kontraktas:
 - `show` yra read-only režimas ir, kai review dar neuždarytas, turi rodyti `source/index/toc_review.yaml` proposal artefaktą;
 - `approve` ir `revise` yra vieninteliai v1 komandų režimai, kurie valdo `chapter_map_review` `decision_artifact` tame scope;
 - `approve` ir `revise` yra vieninteliai v1 komandų režimai, kurie gali materializuoti arba atnaujinti approved `chapter_map.yaml` iš `source/index/toc_review.yaml`;
+- jei `approve` arba `revise` materializuoja ar atnaujina approved `chapter_map.yaml`, ta pati komanda yra ir vienintelis Wave 1 owner'is, kuris tame apply žingsnyje turi materializuoti arba perregeneruoti `source/chapters-en/*` iš naujo approved map;
 - komanda, gavusi žmogaus instrukciją apie `chapter_map`, turi persistinti `source_user_input` ir `interpreted_resolution` kanoniniame `decision_artifact` prieš keisdama `chapter_map.yaml`;
 - po sėkmingo `approve` arba `revise` pritaikymo `source/index/toc_review.yaml` turi būti pažymėtas `proposal_status = resolved`;
 - kai `approve` arba `revise` pasiekia `decision_artifact.status = applied`, ta pati komanda turi atnaujinti `book.yaml.status` į `prepared_waiting_translation_permission`;
@@ -3012,6 +3050,7 @@ Svarbus principas:
 - šie failai nėra kanoninis šaltinis;
 - jie yra darbo navigacijos ir agentinio skaitymo sluoksnis;
 - jie turi būti deterministiškai perregeneruojami iš source + `chapter_map`.
+- Wave 1 nenaudoja atskiros papildomos komandos šiam žingsniui: `source/chapters-en/*.md` visada materializuoja ta pati komanda, kuri tame pačiame success/apply žingsnyje pirmą kartą materializuoja arba atnaujina approved `chapter_map.yaml`.
 
 Kiekvienas source chapter failas turi bent:
 
