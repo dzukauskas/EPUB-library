@@ -95,4 +95,4 @@ Papildoma taisyklė:
 ## Kaip naudoti šį dokumentą
 - nauji acceptance / validation reikalavimai turi būti keliami čia;
 - kai validation korpusas detalės, šis dokumentas turi augti ir konkretėti;
-- šis dokumentas turi būti gyvas, bet ne maišomas su `OPEN_QUESTIONS.md`, nes validation planas nėra tas pats, kas atviri architektūriniai klausimai.
+- šis dokumentas turi būti gyvas, bet ne maišomas su `open_questions.md`, nes validation planas nėra tas pats, kas atviri architektūriniai klausimai.
