@@ -70,26 +70,26 @@ repo/
           figures.tsv
           figures.meta.yaml
         chapters-en/
-          001-<slug>.md
-          001-<slug>.meta.yaml
+          <slug>.md
+          <slug>.meta.yaml
         figures-raw/
 
       research/
-        001-<slug>.md
+        <slug>.md
       claims/
-        001-<slug>.yaml
+        <slug>.yaml
       blockers/
-        001-<slug>.yaml
+        <slug>.yaml
       chapter_packs/
-        001-<slug>.yaml
+        <slug>.yaml
 
       lt/
         chapters/
-          001-<slug>.md
-          001-<slug>.meta.yaml
+          <slug>.md
+          <slug>.meta.yaml
         learning/
-          001-<slug>.md
-          001-<slug>.meta.yaml
+          <slug>.md
+          <slug>.meta.yaml
         figures/
           manifest.tsv
           manifest.meta.yaml
@@ -134,6 +134,13 @@ repo/
   tests/
     fixtures/
 ```
+
+### Kanoninė chapter-scoped failų vardyno taisyklė v1
+- `chapter_slug` yra loginis skyriaus identifikatorius be numerio prefikso, pvz. `airway`.
+- `chapter_number` yra atskiras struktūrinis laukas kanoniniuose artefaktuose ir nėra chapter-scoped failo stem dalis.
+- Kanoninis repo ir Obsidian chapter-scoped on-disk file stem v1 yra `<chapter_slug>`.
+- Todėl šiame dokumente tokie keliai kaip `source/chapters-en/<slug>.md`, `research/<slug>.md`, `claims/<slug>.yaml`, `blockers/<slug>.yaml`, `chapter_packs/<slug>.yaml`, `lt/chapters/<slug>.md` ir `lt/learning/<slug>.md` reiškia realų on-disk failo vardą su tuo pačiu `chapter_slug`.
+- Išoriniai vendor ar workspace organizavimo sluoksniai gali naudoti kitą aplankų vardyną, jei tai tame sluoksnyje aprašyta atskirai; ši taisyklė užrakina tik repo ir Obsidian chapter-scoped failų vardus.
 
 ### Ką reiškia ši struktūra
 #### Root lygis
@@ -642,6 +649,13 @@ Papildomas kontraktas:
 - `research-chapter` turi kiekvieną `required_claims[]` descriptor vienetą arba materializuoti į `claims/<slug>.yaml` per `claims[].required_claim_ref`, arba palikti formaliai neišspręstą per blocker / review kelią su `blockers[].required_claim_refs[]`;
 - claim coverage closure tame skyriuje vertinama pagal `chapter_pack.required_claims[].claim_key` padengimą per `claims[].required_claim_ref` ir, jei dar neišspręsta, per `blockers[].required_claim_refs[]`; nė vienas `required_claims[]` vienetas negali likti be jokio formalaus downstream ryšio;
 - `required_claims[]` kartu yra ir kanoninis preflight signalas chapter-level `risk_class` derivacijai: jei masyvas nėra tuščias, downstream `build-chapter-pack` privalo materializuoti `qa/chapter_status.tsv.risk_class = high`; jei masyvas yra `[]`, downstream `build-chapter-pack` privalo materializuoti `risk_class = low`;
+- `chapter_type` yra privalomas string enum, apibūdinantis dominuojantį source chapter turinio tipą; leistinos v1 reikšmės:
+  - `expository` — vyrauja aiškinamasis ar aprašomasis turinys be dominuojančios veiksmų sekos ar vaistų/dozių centro;
+  - `algorithmic` — vyrauja žingsninė sprendimų ar veiksmų seka;
+  - `pharmacology` — vyrauja vaistų, dozių ar režimų logika;
+  - `mixed` — nėra vienos aiškiai dominuojančios ankstesnės klasės;
+- `draft_mode` yra privalomas string enum; v1 leidžiama tik reikšmė `preflight_scaffold`;
+- `draft_mode = preflight_scaffold` reiškia, kad `chapter_pack` yra vykdomas planavimo / preflight artefaktas, o ne atskiras vartotojui rodomo vertimo juodraščio tipas ir ne papildoma workflow state ašis;
 - `risk_flags[]` lieka granularių rizikos priežasčių rinkiniu pačiame `chapter_pack`; jis gali paaiškinti, kodėl skyrius laikomas jautriu, bet negali tapti atskiru persisted `risk_class` enum'u ar override mechanizmu;
 - `risk_flags[]` yra privalomas masyvas, kuriam leidžiama `[]`; jei item'ų yra, jie gali būti tik šie normalizuoti machine-facing flag'ai:
   - `algorithmic_sequence`
@@ -1429,6 +1443,9 @@ Papildomos taisyklės:
 - `required_claims[]` išlaiko preflight obligation descriptor semantiką ir nereiškia, kad `claims/<slug>.yaml` jau egzistuoja ar kad masyve saugomi tik finalūs `claim_id`;
 - kiekvienas `required_claims[].claim_key` yra stabilus chapter-local join raktas, kurį privalo naudoti tiek `claims[].required_claim_ref`, tiek claim-related `blockers[].required_claim_refs[]`;
 - `required_claims[]` kartu yra kanoninis upstream derivation signalas `qa/chapter_status.tsv.risk_class`: ne tuščias masyvas reiškia, kad downstream `build-chapter-pack` turi materializuoti `risk_class = high`, o `[]` reiškia, kad jis turi materializuoti `risk_class = low`;
+- `chapter_type` naudoja tik šias string enum reikšmes: `expository`, `algorithmic`, `pharmacology`, `mixed`;
+- `draft_mode` naudoja tik vieną leistiną v1 string enum reikšmę: `preflight_scaffold`;
+- `draft_mode = preflight_scaffold` žymi vykdomą preflight pack tipą ir nepakeičia `chapter_state`, `risk_class`, gate ar review ašių;
 - pats `chapter_pack` nelaiko atskiro `risk_class` lauko; persisted policy klasifikatorius gyvena tik `qa/chapter_status.tsv`, o `risk_flags[]` lieka granularių priežasčių rinkiniu, kuris negali jo perrašyti ar pakeisti;
 - `risk_flags[]` yra required masyvas; jei item'ų yra, jie gali būti tik `algorithmic_sequence`, `medication_or_dose`, `indication_or_contraindication`, `competency_boundary`, `guideline_dependent`, `jurisdiction_specific`, `legal_or_organizational`;
 - `term_candidates_snapshot[]` yra required masyvas; kiekvienam row required: `source_term_en`, `candidate_lt`, `context`, `needs_review`; `concept_id` lieka optional;
@@ -4010,13 +4027,13 @@ Pagrindiniai principai:
 
 ### Vault struktūra v1
 ```text
-<Vault>/Medical Books/<book_slug>/
+  <Vault>/Medical Books/<book_slug>/
   00 Book Home.md
   01 Chapter Index.md
   10 Canonical LT/
-    001-<slug>.md
+    <slug>.md
   20 Learning/
-    001-<slug>.md
+    <slug>.md
   30 Figures/
     figure-<id>.png
     figure-<id>.svg
@@ -4100,7 +4117,7 @@ Bet „greta“ reiškia ne tame pačiame faile, o:
 Naudojamas stabilus `book_slug`, ne vien žmogui gražus, bet nestabilus pavadinimas.
 
 #### Skyrių failai
-Naudojamas stabilus `<chapter_number>-<chapter_slug>.md` modelis, kad ryšys su repo būtų deterministinis.
+Naudojamas stabilus `<chapter_slug>.md` modelis, nes chapter numeris repo ir Obsidian failų varduose nėra kanoninio file stem dalis.
 
 #### Home ir index failai
 Naudojami stabilūs pavadinimai:

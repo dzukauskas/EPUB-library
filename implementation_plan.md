@@ -47,6 +47,8 @@ Tikslas:
 - sukurti publication/resource/spine/nav vidinį modelį;
 - realizuoti `prepare-book`;
 - sugeneruoti `chapter_map` proposal artefaktą review etapui;
+- realizuoti `review-chapter-map` kaip kanoninį proposal -> approved `chapter_map` perėjimo žingsnį;
+- įdiegti minimalų `chapter_map_review` `decision_artifact` lifecycle, reikalingą šio review apply boundary;
 - sukurti source indeksus ir knygos profilį.
 
 Privalomi rezultatai:
@@ -55,7 +57,10 @@ Privalomi rezultatai:
 - kai `EPUBCheck` CLI sėkmingai paleistas, sistema išsaugo `source/index/epubcheck_report.raw.json` ir `source/index/epubcheck_summary.yaml`;
 - sugeneruoja `book.yaml`;
 - kai reikia review, sugeneruoja `source/index/toc_review.yaml` kaip siūlomą `chapter_map` artefaktą;
+- `review-chapter-map approve|revise` yra kanoninis Wave 1 kelias `source/index/toc_review.yaml` -> `chapter_map_review` sprendimo apply -> `chapter_map.yaml`;
 - kai review nereikalingas arba jau užbaigtas, materializuoja approved `chapter_map.yaml`;
+- sėkmingas `chapter_map_review` apply atnaujina `book.yaml.status` į `prepared_waiting_translation_permission`;
+- tas pats apply atnaujina `approved_chapter_map_version`;
 - sugeneruoja `source/index/*`;
 - gali palikti `qa/chapter_status.tsv` kaip header-only shell be chapter-level eilučių;
 - parodo vartotojui skyrių žemėlapį review.
@@ -203,7 +208,7 @@ Fazė 0 + Fazė 1 + Fazė 2:
 - artefaktų schemos;
 - `EPUBLib` ingest;
 - `EPUBCheck` preflight validation;
-- `chapter_map` generavimas ir review paruošimas;
+- `chapter_map` generavimas, `review-chapter-map` ir minimalus `chapter_map_review` apply lifecycle iki approved `chapter_map`;
 - `book.yaml`;
 - `chapter_pack`;
 - `research` ir `claims` pradinis sluoksnis.
