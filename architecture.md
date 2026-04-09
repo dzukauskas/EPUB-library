@@ -4,18 +4,22 @@
 Šis dokumentas fiksuoja techninę projekto architektūrą: repo struktūrą, artefaktus, būsenų mašiną, ingest, terminų engine, figūrų pipeline, schemas, versijavimą ir priklausomybių logiką.
 
 ## Repo struktūra v1
+Žemiau pateiktas medis aprašo target v1 scaffold, o ne teigia, kad visas jis jau materializuotas dabartiniame working tree. Dabartiniai root norminiai dokumentai šiame repo jau egzistuoja nurodytais tikrais failų vardais, o likusi medžio dalis yra v1 statomas karkasas.
+
 ```text
 repo/
   README.md
   AGENTS.md
-  PROJECT_CONSTITUTION.md
-  PRODUCT_SPEC.md
-  ARCHITECTURE.md
-  DOCUMENT_SYSTEM.md
-  AGENT_SYSTEM.md
-  IMPLEMENTATION_PLAN.md
-  OPEN_QUESTIONS.md
-  VALIDATION_PLAN.md
+  PLANS.md
+  project_constitution.md
+  product_spec.md
+  architecture.md
+  document_system.md
+  agent_system.md
+  implementation_plan.md
+  open_questions.md
+  validation_plan.md
+  reference_examples.md
   pyproject.toml
   uv.lock
   .python-version
@@ -133,14 +137,17 @@ repo/
 
 ### Ką reiškia ši struktūra
 #### Root lygis
-- `PROJECT_CONSTITUTION.md` — aukščiausio lygio projekto branduolys ir nekintamos taisyklės.
-- `PRODUCT_SPEC.md` — detalizuotos produkto taisyklės.
-- `ARCHITECTURE.md` — techninė architektūra.
-- `DOCUMENT_SYSTEM.md` — dokumentų sistemos žemėlapis, prioritetai ir vardų atitiktis.
-- `AGENT_SYSTEM.md` — promptų, role promptų, resume promptų ir agentinio I/O architektūra.
-- `IMPLEMENTATION_PLAN.md` — statybos seka ir įgyvendinimo bangos.
-- `OPEN_QUESTIONS.md` — tik dar neuždaryti klausimai.
-- `VALIDATION_PLAN.md` — acceptance / validation korpusas ir patikimumo slenkstis.
+- `AGENTS.md` — repo-local agent entrypoint ir darbo ribų priminimas.
+- `PLANS.md` — repo-local ExecPlan standartas.
+- `project_constitution.md` — aukščiausio lygio projekto branduolys ir nekintamos taisyklės.
+- `product_spec.md` — detalizuotos produkto taisyklės.
+- `architecture.md` — techninė architektūra.
+- `document_system.md` — dokumentų sistemos žemėlapis, prioritetai ir vardų atitiktis.
+- `agent_system.md` — promptų, role promptų, resume promptų ir agentinio I/O architektūra.
+- `implementation_plan.md` — statybos seka ir įgyvendinimo bangos.
+- `open_questions.md` — tik dar neuždaryti klausimai.
+- `validation_plan.md` — acceptance / validation korpusas ir patikimumo slenkstis.
+- `reference_examples.md` — iliustraciniai, nekanoniniai pavyzdžiai.
 - `pyproject.toml` + `uv.lock` — naujo projekto Python bazė. Numatoma Python 3.13+ kryptis, nes EPUB sluoksnis planuojamas ant `EPUBLib`.
 - `repo_config.local.toml` — workstation-specific konfigūracija, pvz. Obsidian `vault` keliai. Ji neturi būti kanoninė projekto būsena.
 
@@ -377,6 +384,7 @@ Paskirtis:
 Papildomas kontraktas:
 
 - `chapter_map.yaml` yra tik approved artefaktas ir negali būti naudojamas proposal būsenai;
+- top-level `status` laukas šiame artefakte nenaudojamas; approved segmentacijos būsena apibrėžiama tuo, kad egzistuoja pats `chapter_map.yaml`, o workflow/proposal būsenos lieka `book.yaml.status` ir `source/index/toc_review.yaml.proposal_status`;
 - jei segmentacija dar laukia review, siūlomas artefaktas turi gyventi `source/index/toc_review.yaml`, o ne kaip "siūlomas `chapter_map.yaml`".
 
 ### `source/index/toc_review.yaml`
@@ -584,7 +592,7 @@ Papildomas kontraktas:
 - nė vienas iš šių masyvų negali būti modeliuojamas vien raw free-text elementais kaip vieninteliu elemento tipu;
 - `learning_block_profile` lieka privalomas viršutinis mokymosi bloko profilis;
 - `required_sections[]`, `optional_sections_enabled[]`, `optional_sections_disabled[]`, `not_allowed_sections[]` kartu sudaro pilną planning-state modelį tam pačiam kanoninių learning sekcijų rinkiniui, o ne tik papildomoms sekcijoms;
-- `required_sections[]` turi apimti ir pastovų privalomą branduolį iš `PRODUCT_SPEC.md`, ir sąlyginai privalomas sekcijas pagal skyriaus tipą, riziką ar figūrų svarbą;
+- `required_sections[]` turi apimti ir pastovų privalomą branduolį iš `product_spec.md`, ir sąlyginai privalomas sekcijas pagal skyriaus tipą, riziką ar figūrų svarbą;
 - jei naudojamas minimalus v1 `learning_section_id` modelis, jis reiškia tik techninius kanoninius ID jau užrakintoms produkto sekcijoms, o ne naują konkuruojančią taksonomiją.
 
 Kanoninis v1 `learning_section_id` rinkinys:
@@ -604,10 +612,10 @@ Kanoninis v1 `learning_section_id` rinkinys:
 
 Papildomos taisyklės šiam rinkiniui:
 
-- `learning_section_id` yra stabilus machine-facing identifikatorius; žmogui rodomas heading'as lieka `PRODUCT_SPEC.md` užrakintas LT pavadinimas;
+- `learning_section_id` yra stabilus machine-facing identifikatorius; žmogui rodomas heading'as lieka `product_spec.md` užrakintas LT pavadinimas;
 - `required_sections[]`, `optional_sections_enabled[]`, `optional_sections_disabled[]` ir `not_allowed_sections[]` gali saugoti tik šiuos `learning_section_id`, ne laisvą tekstą ir ne LT heading'us;
 - visi šio rinkinio ID kartu turi sudaryti pilną v1 planning-state partition tame skyriuje: tas pats ID negali kartotis daugiau nei viename masyve;
-- šeši branduolio ID (`chapter_essence`, `key_terms`, `core_logic`, `explanatory_examples`, `must_remember`, `self_check_questions`) visada turi būti `required_sections[]` masyve ta pačia kanonine tvarka kaip `PRODUCT_SPEC.md`;
+- šeši branduolio ID (`chapter_essence`, `key_terms`, `core_logic`, `explanatory_examples`, `must_remember`, `self_check_questions`) visada turi būti `required_sections[]` masyve ta pačia kanonine tvarka kaip `product_spec.md`;
 - likę šeši sąlyginiai ID kiekviename `chapter_pack` turi būti deterministiškai paskirstyti tarp `required_sections[]`, `optional_sections_enabled[]`, `optional_sections_disabled[]` ir `not_allowed_sections[]` pagal produkto taisykles ir skyriaus kontekstą.
 
 ### `research/<slug>.md`
@@ -1129,7 +1137,6 @@ Top-level required:
 - `schema_type`
 - `schema_version`
 - `book_slug`
-- `status`
 - `chapters`
 
 Kiekvienam `chapters[]` vienetui required:
@@ -1153,6 +1160,7 @@ Optional:
 Papildomos taisyklės:
 
 - `chapter_map.yaml` yra tik approved segmentation artefaktas;
+- top-level `status` laukas šiame artefakte draudžiamas; proposal būsena gyvena tik `source/index/toc_review.yaml.proposal_status`, o knygos orchestration būsena tik `book.yaml.status`;
 - jei skyrių žemėlapis dar laukia review, proposal turi gyventi `source/index/toc_review.yaml`, ne šiame faile.
 
 #### `source/index/toc_review.yaml` (`schema_type: chapter_map_review`)
@@ -1388,6 +1396,22 @@ Optional:
 - `supersedes`
 - `notes`
 
+Leistinos `decision_type` reikšmės:
+
+- `chapter_map_review`
+- `blocker_resolution`
+- `term_resolution`
+- `book_localization_exception`
+- `chapter_approval`
+
+`decision_type` semantika ir komandų ownership:
+
+- `chapter_map_review` — vienintelis kanoninis `chapter_map` review sprendimo tipas; jį tame scope valdo tik `review-chapter-map approve|revise`.
+- `blocker_resolution` — naudojamas tik tada, kai `resolve-blockers apply --blocker <id>` uždaro eskaluotą ne-termininį blocker'į ir neprideda naujos terminų taisyklės ar knygos lygio lokalizacijos išimties.
+- `term_resolution` — naudojamas tik tada, kai `resolve-blockers apply --blocker <id>` sukuria, pakeičia, atmeta arba promuoja terminų taisyklę `terms/*` ar `shared/terminology/*` lineage.
+- `book_localization_exception` — naudojamas tik tada, kai `resolve-blockers apply --blocker <id>` normalizuoja žmogaus patvirtintą knygos lygio lokalizacijos išimtį į `book.yaml.book_specific_localization_rules[]`; `refresh-book-profile` gali tik perrašyti jau pritaikytą žinią ir pats šio `decision_type` nekūrė.
+- `chapter_approval` — vienintelis review-gated skyriaus galutinio patvirtinimo sprendimo tipas; jį tame scope valdo tik `approve-chapter`.
+
 V1 lifecycle modelis:
 
 - v1 naudoja vieną kanoninį decision lifecycle failą: `books/<book_slug>/decisions/<decision_id>.yaml`;
@@ -1516,7 +1540,7 @@ Be tikslių schemų ir versijavimo sistema ilgainiui subyrėtų:
 - OpenCode / Codex CLI pradėtų spėlioti failų struktūras.
 
 ## Agentų rolės
-- Machine-facing role identifikatoriai turi būti snake_case ir sutapti su `AGENT_SYSTEM.md` `structured_state.role` enum bei role promptų failų vardais.
+- Machine-facing role identifikatoriai turi būti snake_case ir sutapti su `agent_system.md` `structured_state.role` enum bei role promptų failų vardais.
 - `user_review` šiame dokumente žymi žmogaus review vartus / veiksmą workflow lygyje, bet nėra agent `role` enum reikšmė ir neturi atskiro role prompt failo.
 
 - `book_preparation`
@@ -2030,7 +2054,7 @@ Komanda negali pradėti 1 skyriaus vertimo.
 Papildomas kontraktas:
 
 - `show` yra read-only režimas ir, kai review dar neuždarytas, turi rodyti `source/index/toc_review.yaml` proposal artefaktą;
-- `approve` ir `revise` yra vieninteliai v1 komandų režimai, kurie valdo `chapter_map` review `decision_artifact` tame scope;
+- `approve` ir `revise` yra vieninteliai v1 komandų režimai, kurie valdo `chapter_map_review` `decision_artifact` tame scope;
 - `approve` ir `revise` yra vieninteliai v1 komandų režimai, kurie gali materializuoti arba atnaujinti approved `chapter_map.yaml` iš `source/index/toc_review.yaml`;
 - komanda, gavusi žmogaus instrukciją apie `chapter_map`, turi persistinti `source_user_input` ir `interpreted_resolution` kanoniniame `decision_artifact` prieš keisdama `chapter_map.yaml`;
 - po sėkmingo `approve` arba `revise` pritaikymo `source/index/toc_review.yaml` turi būti pažymėtas `proposal_status = resolved`;
@@ -2130,6 +2154,7 @@ Papildomas kontraktas:
 - `report` yra read-only režimas ir pats nerašo `decision_artifact`;
 - `auto` negali apeiti `requires_user_decision = true` blocker'ių ir negali savavališkai pritaikyti žmogaus sprendimą reikalaujančių pakeitimų;
 - `apply --blocker <id>` yra vienintelis v1 komandų režimas, kuris valdo eskaluoto blocker'io sprendimo normalizavimą į `decision_artifact` tame scope;
+- ta komanda turi persistinti tik vieną iš `decision_type` reikšmių `blocker_resolution`, `term_resolution` arba `book_localization_exception`, pagal tai, ar sprendimas uždaro blocker'į be termino pokyčio, keičia terminų taisyklę, ar įveda `book.yaml.book_specific_localization_rules[]` išimtį;
 - jei blocker'iui reikia žmogaus sprendimo, `apply --blocker <id>` turi persistinti `source_user_input` ir `interpreted_resolution` prieš bet kokius downstream pakeitimus ir negali jų taikyti, kol sprendimas nėra `applied`.
 
 #### `build-learning-block`
@@ -2202,7 +2227,7 @@ Paskirtis:
 Papildomas kontraktas:
 
 - jei `risk_class = high`, `approve-chapter` visada valdo review-gated approval kelią ir negali nustatyti `approved` be žmogaus patvirtinimo;
-- jei `user_review_required = true`, `approve-chapter` yra vienintelė v1 komanda, valdanti `risk_class = high` ar kitaip review-gated skyriaus galutinio approval `decision_artifact`;
+- jei `user_review_required = true`, `approve-chapter` yra vienintelė v1 komanda, valdanti `risk_class = high` ar kitaip review-gated skyriaus galutinio `chapter_approval` `decision_artifact`;
 - komanda turi persistinti `source_user_input` ir `interpreted_resolution` prieš keisdama chapter approval būseną;
 - `approved` būsena negali būti nustatyta apeinant `decision_artifact` apply boundary, jei tam skyriui pagal politiką reikalingas žmogaus patvirtinimas;
 - komanda remiasi persisted `risk_class` iš `qa/chapter_status.tsv` ir jo iš naujo nederivuoja.

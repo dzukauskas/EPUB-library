@@ -9,13 +9,13 @@
 
 Jei šio dokumento pavyzdžiai kada nors konfliktuotų su kanoniniais dokumentais, visada laimi:
 
-- `PROJECT_CONSTITUTION.md`
-- `PRODUCT_SPEC.md`
-- `ARCHITECTURE.md`
-- `AGENT_SYSTEM.md`
-- `IMPLEMENTATION_PLAN.md`
-- `VALIDATION_PLAN.md`
-- `OPEN_QUESTIONS.md`
+- `project_constitution.md`
+- `product_spec.md`
+- `architecture.md`
+- `agent_system.md`
+- `implementation_plan.md`
+- `validation_plan.md`
+- `open_questions.md`
 
 ## Statusas
 Šis dokumentas yra:
@@ -318,6 +318,6 @@ Section label reference'ai:
 
 ## Ko šis dokumentas neturi daryti
 - kurti naujų produkto ar architektūros taisyklių;
-- tapti antru `ARCHITECTURE.md` ar `AGENT_SYSTEM.md`;
+- tapti antru `architecture.md` ar `agent_system.md`;
 - perrašyti kanoninius dokumentus savo pavyzdžiais;
 - vėl kaupti visą projektą į vieną „lengviau skaityti“ super dokumentą.

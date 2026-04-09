@@ -230,10 +230,12 @@ Fazė 6 + Fazė 7 + Fazė 8 + Fazė 9:
 - hardening ant realių knygų.
 
 ## Ką svarbiausia perduoti Codex / OpenCode agentams
+Šis perdavimo paketas aprašo statomą v1 scaffold logiką; agentai neturi manyti, kad visas target medis jau pilnai materializuotas dabartiniame working tree.
+
 Agentams turi būti perduota bent:
-- `PROJECT_CONSTITUTION.md`
-- `PRODUCT_SPEC.md`
-- `ARCHITECTURE.md`
-- `AGENT_SYSTEM.md`
-- `IMPLEMENTATION_PLAN.md`
+- `project_constitution.md`
+- `product_spec.md`
+- `architecture.md`
+- `agent_system.md`
+- `implementation_plan.md`
 - taisyklė, kad negalima improvizuoti prieš jau priimtus sprendimus.

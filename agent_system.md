@@ -255,7 +255,7 @@ Papildomai gali reikalauti:
 - `risk_flags`
 - `new_term_candidates_count`
 
-Šios keturios sekcijų grupės turi naudoti tik kanoninius `learning_section_id` iš `ARCHITECTURE.md`, ne LT heading'us ir ne role-local sinonimus.
+Šios keturios sekcijų grupės turi naudoti tik kanoninius `learning_section_id` iš `architecture.md`, ne LT heading'us ir ne role-local sinonimus.
 
 #### `research_localization`
 Papildomai gali reikalauti:
@@ -787,7 +787,7 @@ Taisyklės:
 - role-specific laukai negali būti keliami į top-level be atskiro architektūrinio sprendimo;
 - `role_payload` turi būti aiškiai susietas su `role` reikšme;
 - vienai rolei leidžiami tik jai priskirti papildomi laukai.
-- `role_payload` reporting laukai yra tik execution I-O santrauka ir nepakeičia kanoninės artefaktų schemos iš `ARCHITECTURE.md`.
+- `role_payload` reporting laukai yra tik execution I-O santrauka ir nepakeičia kanoninės artefaktų schemos iš `architecture.md`.
 
 ### Minimalus YAML pavyzdys
 ```yaml
@@ -852,32 +852,40 @@ Todėl ši schema yra paskutinis formalus promptų architektūros sluoksnis, rei
 - `YYYYMMDD-HHMMSS-<scope>-<short-slug>`
 
 ### Kada privalomas decision artifact
-- `chapter_map` review
-- eskaluoto blocker'io sprendimas
-- aukštos rizikos termino promotion / atmetimas
-- knygos lygio lokalizacijos išimtis
-- aukštos rizikos skyriaus galutinis patvirtinimas
+- `chapter_map_review`
+- `blocker_resolution`
+- `term_resolution`
+- `book_localization_exception`
+- `chapter_approval`
 - bet koks vartotojo review, keičiantis politiką
 
 ### Techninis source-of-truth
-- pilna `decision_artifact` techninė schema, enum'ai, leistini `status` perėjimai, conditional required taisyklės ir apply boundary gyvena `ARCHITECTURE.md`;
-- `AGENT_SYSTEM.md` nedubliuoja pilno required laukų sąrašo ir nekonkuruoja su technine schema;
+- pilna `decision_artifact` techninė schema, enum'ai, leistini `status` perėjimai, conditional required taisyklės ir apply boundary gyvena `architecture.md`;
+- `agent_system.md` nedubliuoja pilno required laukų sąrašo ir nekonkuruoja su technine schema;
 - agentai turi remtis tuo, kad vienintelis kanoninis lifecycle failas yra `books/<book_slug>/decisions/<decision_id>.yaml`, o ne atskiras `decision_draft` artefaktų tipas.
+
+Kanoninis `decision_type` vardynas yra tik šis:
+
+- `chapter_map_review`
+- `blocker_resolution`
+- `term_resolution`
+- `book_localization_exception`
+- `chapter_approval`
 
 ### Agentinė sprendimų taikymo taisyklė
 1. vartotojas pateikia laisvą tekstą;
 2. sistema sugeneruoja `decision artifact draft` tame pačiame kanoniniame decision failo modelyje;
 3. sistema parodo žmogui suprantamą interpretaciją;
-4. jei pagal `ARCHITECTURE.md` reikalingas patvirtinimas, agentas sustoja ir laukia aiškaus vartotojo confirmation;
-5. jei patvirtinimo nereikia, agentas gali tęsti tik po parodytos interpretacijos ir tik pagal `ARCHITECTURE.md` apply boundary;
+4. jei pagal `architecture.md` reikalingas patvirtinimas, agentas sustoja ir laukia aiškaus vartotojo confirmation;
+5. jei patvirtinimo nereikia, agentas gali tęsti tik po parodytos interpretacijos ir tik pagal `architecture.md` apply boundary;
 6. `structured_state.decision_artifact_drafts[]` naudojamas tik raportuoti arba siūlyti draft'ą, bet ne pakeisti kanoninį lifecycle state;
 7. agentas negali inventinti jokio papildomo persistinamo state tarp `awaiting_confirmation` ir `applied`;
 8. jei iki `applied` atsiranda daliniai downstream pakeitimai, tai laikoma formalų repair reikalaujančiu inconsistency atveju.
 
 Komandų nuosavybės taisyklė:
-- `review-chapter-map approve|revise` valdo `chapter_map` review sprendimo persistinimą;
-- `resolve-blockers apply --blocker <id>` valdo eskaluoto blocker'io sprendimo persistinimą;
-- `approve-chapter` valdo review-gated chapter approval sprendimo persistinimą;
+- `review-chapter-map approve|revise` valdo tik `chapter_map_review` sprendimo persistinimą;
+- `resolve-blockers apply --blocker <id>` valdo tik `blocker_resolution`, `term_resolution` arba `book_localization_exception` sprendimo persistinimą, priklausomai nuo to, ką realiai keičia sprendimas;
+- `approve-chapter` valdo tik review-gated `chapter_approval` sprendimo persistinimą;
 - read-only komandos pagal nutylėjimą pačios nekuria `decision_artifact`, jei `architecture.md` aiškiai nenustato kitaip.
 
 ## Siauras rašymo paviršius
