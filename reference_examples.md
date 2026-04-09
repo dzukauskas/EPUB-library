@@ -7,7 +7,7 @@
 - turėti paruoštus sample path'us ir ID implementacijai ar testams;
 - sumažinti agentų interpretacijos laisvę ten, kur naudinga pamatyti konkretų pavyzdį.
 
-Jei šio dokumento pavyzdžiai kada nors konfliktuotų su kanoniniais dokumentais, visada laimi:
+Jei šio dokumento pavyzdžiai kada nors konfliktuotų su kanoniniais dokumentais, visada laimi atitinkamas kanoninis dokumentas. Dokumentų vaidmenų, vardų ir skaitymo tvarkos klausimais laimi `document_system.md`; kitu atveju:
 
 - `project_constitution.md`
 - `product_spec.md`

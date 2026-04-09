@@ -20,7 +20,7 @@ Architektūroje jau aprašytas semantinis komandų modelis, bet dar neužrakinta
 
 ## Kaip naudoti šį dokumentą
 - nauji dar neapspręsti klausimai pirmiausia turi būti registruojami čia;
-- kai klausimas galutinai išspręstas, jis turi būti iškeltas į atitinkamą stabilų dokumentą (`project_constitution.md`, `product_spec.md`, `architecture.md`, `agent_system.md`, `implementation_plan.md`), o iš čia pašalintas;
+- kai klausimas galutinai išspręstas, jis turi būti iškeltas į atitinkamą stabilų dokumentą (`project_constitution.md`, `product_spec.md`, `document_system.md`, `architecture.md`, `agent_system.md`, `implementation_plan.md`, o validation pobūdžio klausimams — į `validation_plan.md`), o iš čia pašalintas;
 - šis dokumentas neturi virsti ilgalaike stabilia specifikacija, jo tikslas yra mažėti, o ne augti.
 
 ## Ko šiame dokumente neturi būti

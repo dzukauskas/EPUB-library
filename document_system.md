@@ -188,20 +188,22 @@ Tai reiškia:
 ### Minimalus skaitymo kelias prieš rimtą darbą
 1. `project_constitution.md`
 2. `product_spec.md`
-3. pagal poreikį:
+3. `document_system.md`
+4. pagal poreikį:
    - `architecture.md`
    - `agent_system.md`
    - `implementation_plan.md`
-4. tik tada:
+5. tik tada:
    - `open_questions.md`, jei tema dar neuždaryta;
    - `validation_plan.md`, jei kalbama apie acceptance / patikimumą.
-5. pasirinktinai:
+6. pasirinktinai:
    - `reference_examples.md`, jei reikia konkretaus sample path'o, sample YAML ar sample failų vardyno.
 
 ### Kodėl taip
 Nes agentas pirmiausia turi suprasti:
 - projekto misiją,
 - produkto taisykles,
+- kaip ši dokumentų sistema paskirsto roles ir prioritetus,
 - o tik po to techninę ir agentinę realizaciją.
 
 ---
