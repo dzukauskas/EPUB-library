@@ -101,7 +101,7 @@ def _positional_xpath(element: etree._Element) -> str:
     """
     parts: list[str] = []
     node = element
-    while node is not None and node.tag is not etree.QName:
+    while node is not None and isinstance(node.tag, str):
         parent = node.getparent()
         if parent is None:
             tag = etree.QName(node.tag).localname if node.tag else "root"
@@ -374,7 +374,7 @@ class EPUBIngestor:
             logger.info(
                 "Resuming from state: %d/%d spine items processed.",
                 state.get("spine_processed", 0),
-                state.get("spine_total", "?"),
+                state.get("spine_total", 0),
             )
             return state
 
